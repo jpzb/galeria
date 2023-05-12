@@ -46,7 +46,7 @@ public class MainAdapter extends RecyclerView.Adapter {
             @Override
             public void onClick(View view) {
                 // Navegando para a PhotoActivity
-                mainActivity.startPhotoActiviy(photos.get(position));
+                mainActivity.startPhotoActivity(photos.get(position));
             }
         });
     }

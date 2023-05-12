@@ -1,19 +1,34 @@
 package barcellos.joao_pedro.galeria;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AlertDialogLayout;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -21,6 +36,11 @@ public class MainActivity extends AppCompatActivity {
     List<String> photos = new ArrayList<>();
     // Lista com todos os URI's das fotos
 
+    static int RESULT_TAKE_PICTURE = 1;
+
+    static int RESULT_REQUEST_PERMISSION = 2;
+
+    String currentPhotoPath;
 
     MainAdapter mainAdapter;
 
@@ -79,6 +99,112 @@ public class MainActivity extends AppCompatActivity {
             default:
                 // se não for o id, irá chamar o super
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void startPhotoActivity(String photoPath){
+        // Criando a intenção da PhotoActivity
+        Intent i = new Intent(MainActivity.this, PhotoActivity.class);
+        // Enviando a foto que foi selecioanda para a intent
+        i.putExtra("photo_path", photoPath);
+        // Iniciando a Intent
+        startActivity(i);
+    }
+
+    public void dispatchTakePictureIntent(){
+        File f = null;
+        // Criando um arquivo vazio
+        try{
+            f = createImageFile();
+        }catch (IOException e){
+            // Caso o arquivo não possa ser criado
+            Toast.makeText(MainActivity.this, "Não foi possível criar o arquivo.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        currentPhotoPath = f.getAbsolutePath();
+        // Salvando o local do arquivo da foto
+
+        // Verificando se a foto é nula
+        if(f != null){
+            // Gerando um URI para o arquivo
+            Uri fUri = FileProvider.getUriForFile(MainActivity.this, "barcellos.zamborlin.joao_pedro.fileprovider", f);
+            // Intent para chamar o app de câmera
+            Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            // Passando a URI
+            i.putExtra(MediaStore.EXTRA_OUTPUT, fUri);
+            // Iniciando o app de câmersa
+            startActivityForResult(i, RESULT_TAKE_PICTURE);
+        }
+    }
+
+    private File createImageFile() throws IOException{
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        // Utilizando a data para fazer nomes de arquivos diferentes
+        String imageFileName = "JPEG_" + timestamp;
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File f = File.createTempFile(imageFileName, ".jpg", storageDir);
+        return f;
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == RESULT_TAKE_PICTURE){
+            // Se a foto foi tirada
+            if(resultCode == Activity.RESULT_OK){
+                // Adicionando o local da foto na lista de fotos
+                photos.add(currentPhotoPath);
+                // Avisando o MainAdapter que uma nova foto foi inserida
+                mainAdapter.notifyItemInserted(photos.size() - 1);
+            }else{
+                File f = new File(currentPhotoPath);
+                // Se não foi tirada foto, o arquivo será excluído
+                f.delete();
+            }
+        }
+    }
+
+    public void checkForPermissions(List<String> permissions){
+        List<String> permissionsNotGranted = new ArrayList<>();
+
+        for(String permission : permissions){
+            if(!hasPermission(permission)){
+                permissionsNotGranted.add(permission);
+            }
+        }
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if(permissionsNotGranted.size() > 0){
+                requestPermissions(permissionsNotGranted.toArray(new String[permissionsNotGranted.size()]), RESULT_REQUEST_PERMISSION);
+            }
+        }
+    }
+
+    private boolean hasPermission(String permission){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            return ActivityCompat.checkSelfPermission(MainActivity.this, permission) == PackageManager.PERMISSION_GRANTED;
+        }
+        return false;
+    }
+
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        final List<String> permissionsRejected = new ArrayList<>();
+        if(requestCode == RESULT_REQUEST_PERMISSION){
+            for(String permission : permissions){
+                if(!hasPermission(permission)){
+                    permissionsRejected.add(permission);
+                }
+            }
+        }
+
+        if(permissionsRejected.size() > 0){
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                if(shouldShowRequestPermissionRationale(permissionsRejected.get(0))){
+                    new AlertDialog.Builder(MainActivity.this);
+                }
+            }
         }
     }
 }
