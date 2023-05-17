@@ -4,14 +4,19 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ImageView;
+
+import java.io.File;
+
 public class PhotoActivity extends AppCompatActivity {
 
     String photoPath;
@@ -68,4 +73,16 @@ public class PhotoActivity extends AppCompatActivity {
         }
     }
 
+    void sharePhoto(){
+        // Gerando uma URI para outras apps
+        Uri photoUri = FileProvider.getUriForFile(PhotoActivity.this,
+                "barcellos.joao_pedro.galeria.fileprovider", new File(photoPath));
+        // Criando uma intenção
+        Intent i = new Intent(Intent.ACTION_SEND);
+        i.putExtra(Intent.EXTRA_STREAM, photoUri);
+        // Informando qual o tipo e o arquivo que queremos enviar
+        i.setType("image/jpeg");
+        // Executando a intenção
+        startActivity(i);
+    }
 }

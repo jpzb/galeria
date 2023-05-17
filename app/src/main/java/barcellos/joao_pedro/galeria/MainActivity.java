@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -30,6 +31,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import android.Manifest;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -76,6 +79,13 @@ public class MainActivity extends AppCompatActivity {
         // Criando o gridLayout e setando no RecycleView
         GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, numberOfColumns);
         rvGallery.setLayoutManager(gridLayoutManager);
+
+        // ArrayList de permissões
+        List<String> permissions = new ArrayList<>();
+        // Adicionando a permissão de câmera
+        permissions.add(Manifest.permission.CAMERA);
+        // Chamando a função
+        checkForPermissions(permissions);
     }
     public boolean onCreateOptionsMenu(Menu menu){
         super.onCreateOptionsMenu(menu);
@@ -128,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         // Verificando se a foto é nula
         if(f != null){
             // Gerando um URI para o arquivo
-            Uri fUri = FileProvider.getUriForFile(MainActivity.this, "barcellos.zamborlin.joao_pedro.fileprovider", f);
+            Uri fUri = FileProvider.getUriForFile(MainActivity.this, "barcellos.joao_pedro.galeria.fileprovider", f);
             // Intent para chamar o app de câmera
             Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             // Passando a URI
@@ -169,19 +179,23 @@ public class MainActivity extends AppCompatActivity {
         List<String> permissionsNotGranted = new ArrayList<>();
 
         for(String permission : permissions){
+            // Percorrendo a lista de permissões e verificando se não foi confirmada
             if(!hasPermission(permission)){
+                // Colocando a permissão não confirmada na lista com outras não confirmadas
                 permissionsNotGranted.add(permission);
             }
         }
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             if(permissionsNotGranted.size() > 0){
+                // Requisitando as permissões não confirmadas
                 requestPermissions(permissionsNotGranted.toArray(new String[permissionsNotGranted.size()]), RESULT_REQUEST_PERMISSION);
             }
         }
     }
 
     private boolean hasPermission(String permission){
+        // Verificando se uma permissão já foi permitida
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             return ActivityCompat.checkSelfPermission(MainActivity.this, permission) == PackageManager.PERMISSION_GRANTED;
         }
@@ -189,11 +203,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
+
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         final List<String> permissionsRejected = new ArrayList<>();
         if(requestCode == RESULT_REQUEST_PERMISSION){
             for(String permission : permissions){
+                // Verificando se cada permissão foi confirmada
                 if(!hasPermission(permission)){
+                    // Colocando a permissão não confirmada na lista com outras não confirmadas
                     permissionsRejected.add(permission);
                 }
             }
@@ -202,7 +219,15 @@ public class MainActivity extends AppCompatActivity {
         if(permissionsRejected.size() > 0){
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(shouldShowRequestPermissionRationale(permissionsRejected.get(0))){
-                    new AlertDialog.Builder(MainActivity.this);
+                    // Informando ao usuário que a permissão é necessária para o funcionamento do app
+                    new AlertDialog.Builder(MainActivity.this).setMessage("Para usar essa " +
+                            "app é preciso conceder essas permissões").setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Requisitando novamente as permissões não confirmadas
+                            requestPermissions(permissionsRejected.toArray(new String[permissionsRejected.size()]), RESULT_REQUEST_PERMISSION);
+                        }
+                    }).create().show();
                 }
             }
         }
