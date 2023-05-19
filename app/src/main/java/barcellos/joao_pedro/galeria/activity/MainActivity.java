@@ -1,9 +1,8 @@
-package barcellos.joao_pedro.galeria;
+package barcellos.joao_pedro.galeria.activity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AlertDialogLayout;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
@@ -33,6 +32,10 @@ import java.util.Date;
 import java.util.List;
 
 import android.Manifest;
+
+import barcellos.joao_pedro.galeria.R;
+import barcellos.joao_pedro.galeria.model.Util;
+import barcellos.joao_pedro.galeria.adapter.MainAdapter;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -163,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
         if(requestCode == RESULT_TAKE_PICTURE){
             // Se a foto foi tirada
             if(resultCode == Activity.RESULT_OK){
+
                 // Adicionando o local da foto na lista de fotos
                 photos.add(currentPhotoPath);
                 // Avisando o MainAdapter que uma nova foto foi inserida

@@ -1,4 +1,4 @@
-package barcellos.joao_pedro.galeria;
+package barcellos.joao_pedro.galeria.model;
 
 import android.content.Context;
 import android.graphics.Bitmap;

@@ -1,4 +1,4 @@
-package barcellos.joao_pedro.galeria;
+package barcellos.joao_pedro.galeria.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -16,6 +16,9 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 
 import java.io.File;
+
+import barcellos.joao_pedro.galeria.R;
+import barcellos.joao_pedro.galeria.model.Util;
 
 public class PhotoActivity extends AppCompatActivity {
 
